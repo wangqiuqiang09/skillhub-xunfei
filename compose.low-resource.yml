@@ -60,7 +60,7 @@ services:
       - low_resource_storage:/var/lib/skillhub/storage
     ports:
       - "${API_PORT:-8080}:8080"
-    mem_limit: 512m
+    mem_limit: 1g
     depends_on:
       postgres:
         condition: service_healthy
