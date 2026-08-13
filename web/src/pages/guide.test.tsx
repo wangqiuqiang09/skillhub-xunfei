@@ -7,7 +7,13 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('react-i18next', async () => {
   const actual = await vi.importActual<typeof import('react-i18next')>('react-i18next')
-  return { ...actual, useTranslation: () => ({ t: (key: string) => key, i18n: { resolvedLanguage: 'zh' } }) }
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => key,
+      i18n: { resolvedLanguage: 'zh' }
+    })
+  }
 })
 
 vi.mock('@/shared/lib/clipboard', () => ({ useCopyToClipboard: () => [false, vi.fn()] }))
@@ -15,13 +21,22 @@ vi.mock('@/shared/lib/clipboard', () => ({ useCopyToClipboard: () => [false, vi.
 import { GuidePage } from './guide'
 
 describe('GuidePage', () => {
-  it('renders the chinese onboarding workflow and canonical team slug', () => {
+  it('renders capability, package, authorization, and update guidance', () => {
     const html = renderToStaticMarkup(<GuidePage />)
-    expect(html).toContain('用户操作指引')
-    expect(html).toContain('Agent 对话发布技能')
+    expect(html).toContain('Agent 用户操作指引')
+    expect(html).toContain('确认 Agent 能力')
+    expect(html).toContain('需要用户确认')
+    expect(html).toContain('Claude Desktop')
+    expect(html).toContain('发现和搜索技能')
+    expect(html).toContain('技能目录结构')
+    expect(html).toContain('唯一通用的必需文件')
+    expect(html).not.toContain('package.json')
+    expect(html).not.toContain('version: 1.0.0')
+    expect(html).toContain('通过 Agent 使用技能')
+    expect(html).toContain('常见问题排查')
     expect(html).toContain('kb-ops--my-skill@latest')
-    expect(html).toContain('版本检查失败，本次使用本地版本')
-    expect(html).toContain('PUBLIC 技能可匿名浏览、下载和安装')
-    expect(html).toContain('@global 下的 PUBLIC 技能：无需登录')
+    expect(html).toContain('SKILL.md')
+    expect(html).toContain('版本检查失败')
+    expect(html.match(/id="admin"/g)).toHaveLength(1)
   })
 })
