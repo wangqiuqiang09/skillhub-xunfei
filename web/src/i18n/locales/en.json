@@ -187,6 +187,8 @@
     "filters": {
       "label": "Filter:"
     },
+    "namespaceLabel": "Namespace",
+    "allNamespaces": "All namespaces",
     "sort": {
       "label": "Sort:",
       "relevance": "Relevance",

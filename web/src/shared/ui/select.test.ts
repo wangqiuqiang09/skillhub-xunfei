@@ -5,6 +5,7 @@ import {
   SELECT_SCROLL_BUTTON_CLASS_NAME,
   SELECT_TRIGGER_CLASS_NAME,
   SelectContent,
+  SELECT_VIEWPORT_CLASS_NAME,
   normalizeSelectValue,
 } from './select'
 
@@ -50,5 +51,10 @@ describe('shared select contract', () => {
     expect(normalizeSelectValue(null)).toBeUndefined()
     expect(normalizeSelectValue(undefined)).toBeUndefined()
     expect(normalizeSelectValue('PUBLIC')).toBe('PUBLIC')
+  })
+
+  it('allows multi-option content to grow beyond the trigger height', () => {
+    expect(SELECT_VIEWPORT_CLASS_NAME).toContain('min-h-[var(--radix-select-trigger-height)]')
+    expect(SELECT_VIEWPORT_CLASS_NAME).toContain('max-h-80')
   })
 })

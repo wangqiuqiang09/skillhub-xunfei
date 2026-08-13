@@ -8,6 +8,7 @@ const buttonRecords: Array<{ label: string; variant?: string | null; onClick?: (
 const paginationProps: Array<{ onPageChange: (page: number) => void }> = []
 const searchBarProps: Array<{ value?: string; onSearch?: (query: string) => void }> = []
 const searchSkillParams: Array<Record<string, unknown>> = []
+const selectRecords: Array<{ value?: string; onValueChange?: (value: string) => void }> = []
 
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => navigateMock,
@@ -83,6 +84,17 @@ vi.mock('@/shared/ui/button', () => ({
   },
 }))
 
+vi.mock('@/shared/ui/select', () => ({
+  Select: ({ children, value, onValueChange }: { children?: ReactNode; value?: string; onValueChange?: (value: string) => void }) => {
+    selectRecords.push({ value, onValueChange })
+    return <div>{children}</div>
+  },
+  SelectContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  SelectTrigger: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  SelectValue: () => <span>select-value</span>,
+}))
+
 vi.mock('@/app/page-shell-style', () => ({
   APP_SHELL_PAGE_CLASS_NAME: 'page-shell',
 }))
@@ -101,6 +113,15 @@ vi.mock('@/shared/hooks/use-label-queries', () => ({
     data: [
       { slug: 'code-generation', type: 'RECOMMENDED', displayName: 'Code Generation' },
       { slug: 'official', type: 'RECOMMENDED', displayName: 'Official' },
+    ],
+  }),
+}))
+
+vi.mock('@/shared/hooks/use-namespace-queries', () => ({
+  useMyNamespaces: () => ({
+    data: [
+      { id: 1, slug: 'global', displayName: 'Global', type: 'GLOBAL', status: 'ACTIVE', createdAt: '' },
+      { id: 2, slug: 'team-ai', displayName: 'Team AI', type: 'TEAM', status: 'ACTIVE', createdAt: '' },
     ],
   }),
 }))
@@ -130,6 +151,7 @@ describe('SearchPage', () => {
     paginationProps.length = 0
     searchBarProps.length = 0
     searchSkillParams.length = 0
+    selectRecords.length = 0
     useSearchMock.mockReturnValue({
       q: 'agent',
       namespace: 'team-ai',
@@ -240,6 +262,24 @@ describe('SearchPage', () => {
       sort: 'downloads',
       page: 1,
       size: 12,
+    })
+  })
+
+  it('updates the namespace URL filter from the selector', () => {
+    renderToStaticMarkup(<SearchPage />)
+
+    selectRecords[0]?.onValueChange?.('global')
+
+    expect(navigateMock).toHaveBeenCalledWith({
+      to: '/search',
+      search: {
+        q: 'agent',
+        namespace: 'global',
+        label: 'code-generation',
+        sort: 'downloads',
+        page: 0,
+        starredOnly: false,
+      },
     })
   })
 

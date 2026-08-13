@@ -11,10 +11,18 @@ import { EmptyState } from '@/shared/components/empty-state'
 import { Pagination } from '@/shared/components/pagination'
 import { useSearchSkills } from '@/shared/hooks/use-skill-queries'
 import { useVisibleLabels } from '@/shared/hooks/use-label-queries'
+import { useMyNamespaces } from '@/shared/hooks/use-namespace-queries'
 import { useMyStars } from '@/shared/hooks/use-user-queries'
 import { toRouterPath } from '@/shared/lib/base-path'
 import { formatNamespaceSearchInput, normalizeSearchQuery, parseNamespaceSearchInput } from '@/shared/lib/search-query'
 import { Button } from '@/shared/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui/select'
 import { APP_SHELL_PAGE_CLASS_NAME } from '@/app/page-shell-style'
 
 const PAGE_SIZE = 12
@@ -128,6 +136,7 @@ export function SearchPage() {
     starredOnly,
   })
   const { data: labels } = useVisibleLabels()
+  const { data: namespaces } = useMyNamespaces(isAuthenticated)
   const {
     data: starredSkills,
     isLoading: isLoadingStarred,
@@ -180,7 +189,14 @@ export function SearchPage() {
   }
 
   const handleNamespaceClear = () => {
+    setQueryInput(formatNamespaceSearchInput('', q))
     navigate({ to: '/search', search: { q, namespace: '', label: selectedLabel, sort, page: 0, starredOnly } })
+  }
+
+  const handleNamespaceChange = (nextNamespace: string) => {
+    const selectedNamespace = nextNamespace === 'all' ? '' : nextNamespace
+    setQueryInput(formatNamespaceSearchInput(selectedNamespace, q))
+    navigate({ to: '/search', search: { q, namespace: selectedNamespace, label: selectedLabel, sort, page: 0, starredOnly } })
   }
 
   const handleStarredToggle = () => {
@@ -278,6 +294,20 @@ export function SearchPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="shrink-0 text-sm font-medium text-muted-foreground">{t('search.filters.label')}</span>
+          <Select value={namespace || 'all'} onValueChange={handleNamespaceChange}>
+            <SelectTrigger className="h-9 w-52" aria-label={t('search.namespaceLabel')}>
+              <SelectValue placeholder={t('search.namespaceLabel')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('search.allNamespaces')}</SelectItem>
+              <SelectItem value="global">@global · Global</SelectItem>
+              {namespaces?.map((item) => (
+                item.slug === 'global' ? null : <SelectItem key={item.slug} value={item.slug}>
+                  @{item.slug}{item.displayName ? ` · ${item.displayName}` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant={starredOnly ? 'default' : 'outline'}
             size="sm"

@@ -187,6 +187,8 @@
     "filters": {
       "label": "筛选:"
     },
+    "namespaceLabel": "命名空间",
+    "allNamespaces": "全部命名空间",
     "sort": {
       "label": "排序:",
       "relevance": "相关性",
