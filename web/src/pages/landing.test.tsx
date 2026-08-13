@@ -16,13 +16,7 @@ vi.mock('react-i18next', async () => {
 })
 
 vi.mock('lucide-react', () => ({
-  PackageOpen: () => null,
-  Terminal: () => null,
-  Shield: () => null,
-  Users: () => null,
-  GitBranch: () => null,
   Search: () => null,
-  Settings: () => null,
 }))
 
 vi.mock('@/shared/components/landing-quick-start', () => ({
@@ -69,5 +63,12 @@ describe('LandingPage', () => {
 
     expect(html).toContain('SkillHub')
     expect(html).toContain('landing.hero.title')
+  })
+
+  it('keeps the landing flow focused on discovery and quick start', () => {
+    const html = renderToStaticMarkup(<LandingPage />)
+
+    expect(html).toContain('landing.hero.exploreSkills')
+    expect(html).not.toContain('landing.whySkillHub.title')
   })
 })

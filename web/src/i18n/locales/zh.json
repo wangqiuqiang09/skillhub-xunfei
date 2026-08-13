@@ -110,6 +110,7 @@
       "title": "快速开始",
       "subtitle": "Quick Start",
       "description": "选择你的使用方式，复制说明后继续完成接入",
+      "guide": "查看技能中心",
       "tip": "💡 提示：访问技能详情页可获取带环境变量的一键复制安装命令",
       "tabs": {
         "agent": "我是 Agent",

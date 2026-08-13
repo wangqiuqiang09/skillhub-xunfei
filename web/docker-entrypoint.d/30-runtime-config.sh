@@ -16,6 +16,25 @@ set -eu
 : "${SKILLHUB_WEB_AUTH_SESSION_BOOTSTRAP_PROVIDER:=}"
 : "${SKILLHUB_WEB_AUTH_SESSION_BOOTSTRAP_AUTO:=false}"
 
+case "$SKILLHUB_PUBLIC_BASE_URL" in
+  http://?*|https://?*) ;;
+  *)
+    echo "SKILLHUB_PUBLIC_BASE_URL must be the externally reachable SkillHub server URL (for example, https://skillhub.example.com)." >&2
+    exit 1
+    ;;
+esac
+
+case "$SKILLHUB_PUBLIC_BASE_URL" in
+  */)
+    echo "SKILLHUB_PUBLIC_BASE_URL must not have a trailing slash: $SKILLHUB_PUBLIC_BASE_URL" >&2
+    exit 1
+    ;;
+  *'?'*|*'#'*|'${'*)
+    echo "SKILLHUB_PUBLIC_BASE_URL must be a concrete server URL without placeholders, query parameters, or fragments: $SKILLHUB_PUBLIC_BASE_URL" >&2
+    exit 1
+    ;;
+esac
+
 # Generate runtime-config.js
 envsubst '${SKILLHUB_WEB_API_BASE_URL} ${SKILLHUB_PUBLIC_BASE_URL} ${SKILLHUB_WEB_AUTH_DIRECT_ENABLED} ${SKILLHUB_WEB_AUTH_DIRECT_PROVIDER} ${SKILLHUB_WEB_AUTH_SESSION_BOOTSTRAP_ENABLED} ${SKILLHUB_WEB_AUTH_SESSION_BOOTSTRAP_PROVIDER} ${SKILLHUB_WEB_AUTH_SESSION_BOOTSTRAP_AUTO}' \
   < /usr/share/nginx/html/runtime-config.js.template \

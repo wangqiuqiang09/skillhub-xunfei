@@ -1,0 +1,23 @@
+# Low-resource production image for small SkillHub installations.
+# Build with: docker build -f server/Dockerfile.low-resource -t skillhub-server:low-resource server
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /app
+
+COPY . .
+RUN --mount=type=cache,target=/root/.m2/repository ./mvnw package -DskipTests -B
+
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S app && adduser -S app -G app
+WORKDIR /app
+
+COPY --from=build /app/skillhub-app/target/*.jar app.jar
+RUN mkdir -p /var/lib/skillhub/storage && chown -R app:app /app /var/lib/skillhub/storage
+
+ENV JAVA_TOOL_OPTIONS="-XX:+UseSerialGC -XX:MaxRAMPercentage=70.0 -XX:InitialRAMPercentage=20.0 -XX:ActiveProcessorCount=2 -Xss512k"
+
+USER app
+EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=3s --start-period=90s --retries=12 \
+  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

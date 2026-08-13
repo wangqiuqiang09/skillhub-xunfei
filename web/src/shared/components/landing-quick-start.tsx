@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from '@tanstack/react-router'
 import { Bot, Check, Copy, Terminal, UserRound } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCopyToClipboard } from '@/shared/lib/clipboard'
@@ -100,7 +101,7 @@ export function LandingQuickStartSection() {
 
   return (
     <section className="relative z-10 w-full px-6 py-14 md:py-16" style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-7 md:mb-8">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3" style={{ color: 'hsl(var(--foreground))' }}>
             {t('landing.quickStart.title')}
@@ -108,10 +109,19 @@ export function LandingQuickStartSection() {
           <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'hsl(var(--text-secondary))' }}>
             {t('landing.quickStart.description', { defaultValue: t('landing.quickStart.subtitle') })}
           </p>
+          <div className="mt-5">
+            <Link
+              to="/skills"
+              className="inline-flex items-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50"
+              style={{ borderColor: 'hsl(var(--border))', color: 'hsl(var(--foreground))' }}
+            >
+              {t('landing.quickStart.guide')}
+            </Link>
+          </div>
         </div>
 
         <div
-          className="mx-auto max-w-2xl rounded-[28px] border bg-white p-3 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.25)]"
+          className="mx-auto max-w-4xl rounded-[28px] border bg-white p-3 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.25)]"
           style={{ borderColor: 'hsl(var(--border-card))' }}
         >
           <div
@@ -144,7 +154,7 @@ export function LandingQuickStartSection() {
 
           <div className="px-4 pb-4 pt-8 md:px-8 md:pb-6 md:pt-9">
             <p
-              className="mx-auto mb-6 max-w-xl text-center text-base font-medium leading-relaxed md:text-lg"
+              className="mx-auto mb-6 max-w-2xl text-center text-base font-medium leading-relaxed md:text-lg"
               style={{ color: 'hsl(var(--foreground))' }}
             >
               {currentTab.description}
