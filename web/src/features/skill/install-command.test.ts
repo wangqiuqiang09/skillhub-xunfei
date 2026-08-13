@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   InstallCommand,
+  buildAgentInstallPrompt,
   buildInstallCommand,
   buildInstallTarget,
   buildSkillhubInstallCommand,
@@ -12,6 +13,10 @@ import {
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+    i18n: {
+      language: 'zh-CN',
+      resolvedLanguage: 'zh-CN',
+    },
   }),
 }))
 
@@ -80,6 +85,27 @@ describe('install-command', () => {
     )
   })
 
+  it('builds a Chinese prompt with the registry instructions and exact coordinate', () => {
+    expect(buildAgentInstallPrompt(
+      'global',
+      'hello-world',
+      'http://192.168.100.100:9090',
+      'zh-CN',
+    )).toBe(
+      '请阅读 http://192.168.100.100:9090/registry/skill.md，并按说明安装技能 @global/hello-world。',
+    )
+  })
+
+  it('builds an English prompt for team skills', () => {
+    const prompt = buildAgentInstallPrompt('team-alpha', 'my-skill', 'https://app.example.com', 'en')
+
+    expect(prompt).toContain('https://app.example.com/registry/skill.md')
+    expect(prompt).toContain('@team-alpha/my-skill')
+    expect(prompt).toBe(
+      'Read https://app.example.com/registry/skill.md and follow its instructions to install skill @team-alpha/my-skill.',
+    )
+  })
+
   it('uses the runtime app base url when available', () => {
     setMockWindow('https://app.example.com')
 
@@ -101,14 +127,15 @@ describe('install-command', () => {
     expect(getBaseUrl()).toBe('https://fallback.example.com')
   })
 
-  it('renders the install command in a more compact code block', () => {
+  it('renders the install prompt in a compact readable panel', () => {
     setMockWindow('http://localhost:3000')
 
     const html = renderToStaticMarkup(createElement(InstallCommand, { namespace: 'global', slug: 'meeting-minutes-generator' }))
 
-    expect(html).toContain('px-4 py-3')
+    expect(html).toContain('overflow-hidden rounded-lg')
     expect(html).toContain('leading-relaxed')
-    expect(html).toContain('break-all')
+    expect(html).toContain('[overflow-wrap:anywhere]')
+    expect(html).toContain('bg-sky-500')
   })
 
   it('renders install method tabs with only a short active underline', () => {
@@ -125,7 +152,7 @@ describe('install-command', () => {
     expect(html).not.toContain('flex-1 rounded-md')
   })
 
-  it('renders ClawHub CLI as the default install method', () => {
+  it('renders the AI prompt as the default install method', () => {
     setMockWindow('https://app.example.com')
 
     const html = renderToStaticMarkup(createElement(InstallCommand, {
@@ -133,10 +160,14 @@ describe('install-command', () => {
       slug: 'meeting-minutes-generator',
     }))
 
+    expect(html).toContain('skillDetail.installMethodAgent')
     expect(html).toContain('skillDetail.installMethodClawhub')
     expect(html).toContain('skillDetail.installMethodSkillhub')
     expect(html).toContain('aria-selected="true"')
-    expect(html).toContain('npx clawhub install team-alpha--meeting-minutes-generator --registry https://app.example.com')
+    expect(html).toContain('https://app.example.com/registry/skill.md')
+    expect(html).toContain('@team-alpha/meeting-minutes-generator')
+    expect(html).toContain('skillDetail.copyInstallPrompt')
+    expect(html).not.toContain('npx clawhub install team-alpha--meeting-minutes-generator --registry https://app.example.com')
     expect(html).not.toContain('npx @astron-team/skillhub@latest install meeting-minutes-generator --namespace team-alpha --registry https://app.example.com')
   })
 })

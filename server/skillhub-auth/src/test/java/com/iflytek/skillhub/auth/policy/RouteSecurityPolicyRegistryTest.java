@@ -103,6 +103,27 @@ class RouteSecurityPolicyRegistryTest {
     }
 
     @Test
+    void publicSkillDownloadRoutesAllowHeadPreflight() {
+        assertPublicHeadPolicy("/api/v1/skills/*/*/download");
+        assertPublicHeadPolicy("/api/v1/skills/*/*/versions/*/download");
+        assertPublicHeadPolicy("/api/v1/skills/*/*/tags/*/download");
+        assertPublicHeadPolicy("/api/web/skills/*/*/download");
+        assertPublicHeadPolicy("/api/web/skills/*/*/versions/*/download");
+        assertPublicHeadPolicy("/api/web/skills/*/*/tags/*/download");
+        assertPublicHeadPolicy("/api/cli/v1/skills/*/*/download");
+        assertPublicHeadPolicy("/api/cli/v1/skills/*/*/versions/*/download");
+
+        assertTrue(registry.authorizeApiToken(
+                "HEAD", "/api/v1/skills/global/demo/download", Set.of()).allowed());
+        assertTrue(registry.authorizeApiToken(
+                "HEAD", "/api/web/skills/global/demo/versions/1.0.0/download", Set.of()).allowed());
+        assertTrue(registry.authorizeApiToken(
+                "HEAD", "/api/cli/v1/skills/global/demo/download", Set.of()).allowed());
+        assertFalse(registry.authorizeApiToken(
+                "HEAD", "/api/cli/v1/skills/global/demo/private-operation", Set.of()).allowed());
+    }
+
+    @Test
     void routeAuthorizationProtectsNativeCliRemoteDeleteByAuthenticationNotSuperAdminRole() {
         boolean matched = registry.authorizationPolicies().stream()
                 .anyMatch(policy -> policy.method() == HttpMethod.DELETE
@@ -129,5 +150,14 @@ class RouteSecurityPolicyRegistryTest {
     void shouldProjectRequestContext_onlyForApiRoutes() {
         assertTrue(registry.shouldProjectRequestContext("/api/web/namespaces/team-a"));
         assertFalse(registry.shouldProjectRequestContext("/assets/index.css"));
+    }
+
+    private void assertPublicHeadPolicy(String pattern) {
+        boolean matched = registry.authorizationPolicies().stream()
+                .anyMatch(policy -> policy.method() == HttpMethod.HEAD
+                        && pattern.equals(policy.pattern())
+                        && policy.accessLevel() == RouteSecurityPolicyRegistry.AccessLevel.PERMIT_ALL);
+
+        assertTrue(matched);
     }
 }

@@ -1081,6 +1081,23 @@ export function SkillDetailPage() {
 
       {/* Sidebar */}
       <aside className="w-full lg:w-80 flex-shrink-0 space-y-5">
+        {publishedVersion && canInteract && (
+          <Card className="min-w-0 overflow-hidden p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-semibold font-heading text-foreground">{t('skillDetail.install')}</span>
+            </div>
+            {skill.status === 'ARCHIVED' && (
+              <p className="text-sm text-muted-foreground">{t('skillDetail.archivedInstallHint')}</p>
+            )}
+            <InstallCommand
+              namespace={namespace}
+              slug={slug}
+              version={publishedVersion.version}
+            />
+          </Card>
+        )}
+
         {/* File Tree Sidebar — collapsible, mirrors SecurityAuditSummary card pattern */}
         {files && files.length > 0 && (
           <Card className="p-5 space-y-3">
@@ -1174,23 +1191,6 @@ export function SkillDetailPage() {
             )}
           </div>
         </Card>
-
-        {publishedVersion && canInteract && (
-          <Card className="p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-semibold font-heading text-foreground">{t('skillDetail.install')}</span>
-            </div>
-            {skill.status === 'ARCHIVED' && (
-              <p className="text-sm text-muted-foreground">{t('skillDetail.archivedInstallHint')}</p>
-            )}
-            <InstallCommand
-              namespace={namespace}
-              slug={slug}
-              version={publishedVersion.version}
-            />
-          </Card>
-        )}
 
         {hasPublishedPendingReview && ownerPreviewVersion && (
           <Card className="border-amber-500/30 bg-amber-500/5 p-5 space-y-4">

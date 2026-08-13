@@ -100,7 +100,8 @@ class SkillPublishServiceTest {
                 securityScanService,
                 compensationService,
                 eventPublisher,
-                CLOCK
+                CLOCK,
+                false
         );
         lenient().when(securityScanService.isEnabled()).thenReturn(true);
         lenient().when(skillVersionRepository.findBySkillIdAndStatus(anyLong(), eq(SkillVersionStatus.PENDING_REVIEW)))
@@ -1584,6 +1585,28 @@ class SkillPublishServiceTest {
     }
 
     @Test
+    void testPublishFromEntries_SuperAdminPublicWhenUnscannedVisiblePublishAllowed_ShouldPublish() throws Exception {
+        String namespaceSlug = "test-ns";
+        String publisherId = "admin-user";
+        PublishFixture fixture = stubValidPublishInputs(
+                namespaceSlug, publisherId, "admin-skill", "admin-skill", "1.0.0", false);
+        when(securityScanService.isEnabled()).thenReturn(false);
+        service = createService(true);
+
+        SkillPublishService.PublishResult result = service.publishFromEntries(
+                namespaceSlug,
+                fixture.entries(),
+                publisherId,
+                SkillVisibility.PUBLIC,
+                Set.of("SUPER_ADMIN")
+        );
+
+        assertEquals(SkillVersionStatus.PUBLISHED, result.version().getStatus());
+        verify(securityScanService, never()).triggerScan(anyLong(), anyList(), anyString());
+        verify(eventPublisher).publishEvent(any(SkillPublishedEvent.class));
+    }
+
+    @Test
     void testValidateOnly_PublicWhenScannerDisabled_ShouldReturnScannerRequiredError() throws Exception {
         String namespaceSlug = "test-ns";
         String publisherId = "user-100";
@@ -1609,6 +1632,27 @@ class SkillPublishServiceTest {
 
         assertFalse(result.valid());
         assertTrue(result.errors().contains("error.security.scanner.required"));
+    }
+
+    private SkillPublishService createService(boolean allowUnscannedVisiblePublish) {
+        return new SkillPublishService(
+                namespaceRepository,
+                namespaceMemberRepository,
+                skillRepository,
+                skillVersionRepository,
+                skillFileRepository,
+                objectStorageService,
+                skillPackageValidator,
+                skillMetadataParser,
+                prePublishValidator,
+                objectMapper,
+                reviewTaskRepository,
+                securityScanService,
+                compensationService,
+                eventPublisher,
+                CLOCK,
+                allowUnscannedVisiblePublish
+        );
     }
 
     @Test

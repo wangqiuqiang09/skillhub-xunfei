@@ -7,6 +7,11 @@ total. The security scanner is disabled and package storage uses a local Docker 
 This profile is intended for evaluation and light workloads. Production installations should use
 `compose.release.yml`, external object storage, backups, and capacity based on measured traffic.
 
+The profile also sets `SKILLHUB_SECURITY_ALLOW_UNSCANNED_VISIBLE_PUBLISH=true`. This permits
+`PUBLIC` and `NAMESPACE_ONLY` skills to be published while the scanner is disabled, which is useful
+for trusted internal networks. Other deployment profiles retain the secure default (`false`) and
+reject visible publications without scan results.
+
 ## Build the server image
 
 ```bash

@@ -27,6 +27,7 @@ import com.iflytek.skillhub.domain.skill.validation.ValidationResult;
 import com.iflytek.skillhub.storage.ObjectStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.yaml.snakeyaml.Yaml;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -94,6 +95,7 @@ public class SkillPublishService {
     private final SkillStorageDeletionCompensationService compensationService;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
+    private final boolean allowUnscannedVisiblePublish;
 
     public SkillPublishService(
             NamespaceRepository namespaceRepository,
@@ -110,7 +112,9 @@ public class SkillPublishService {
             SecurityScanService securityScanService,
             SkillStorageDeletionCompensationService compensationService,
             ApplicationEventPublisher eventPublisher,
-            Clock clock) {
+            Clock clock,
+            @Value("${skillhub.security.allow-unscanned-visible-publish:false}")
+            boolean allowUnscannedVisiblePublish) {
         this.namespaceRepository = namespaceRepository;
         this.namespaceMemberRepository = namespaceMemberRepository;
         this.skillRepository = skillRepository;
@@ -126,6 +130,7 @@ public class SkillPublishService {
         this.compensationService = compensationService;
         this.eventPublisher = eventPublisher;
         this.clock = clock;
+        this.allowUnscannedVisiblePublish = allowUnscannedVisiblePublish;
     }
 
     public record DryRunResult(
@@ -179,7 +184,8 @@ public class SkillPublishService {
                 errors.add("Publisher is not a member of namespace: " + namespaceSlug);
             }
         }
-        if (requiresSecurityScanner(visibility) && !securityScanService.isEnabled()) {
+        if (requiresSecurityScanner(visibility) && !securityScanService.isEnabled()
+                && !allowUnscannedVisiblePublish) {
             errors.add("error.security.scanner.required");
         }
 
@@ -392,8 +398,17 @@ public class SkillPublishService {
                     "error.skill.publish.precheck.confirmRequired",
                     formatValidationMessages(publishWarnings));
         }
-        if (requiresSecurityScanner(visibility) && !securityScanService.isEnabled()) {
+        if (requiresSecurityScanner(visibility) && !securityScanService.isEnabled()
+                && !allowUnscannedVisiblePublish) {
             throw new DomainBadRequestException("error.security.scanner.required");
+        }
+        if (requiresSecurityScanner(visibility) && !securityScanService.isEnabled()) {
+            log.warn(
+                    "Publishing visible skill without security scan: namespace={}, publisher={}, visibility={}",
+                    namespaceSlug,
+                    publisherId,
+                    visibility
+            );
         }
 
         // 6. Find or create Skill record (with owner isolation)

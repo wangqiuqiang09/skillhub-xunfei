@@ -175,6 +175,7 @@ skillhub:
   device-auth:
     verification-uri: ${DEVICE_AUTH_VERIFICATION_URI:${skillhub.public.base-url:}/cli/auth}
   security:
+    allow-unscanned-visible-publish: ${SKILLHUB_SECURITY_ALLOW_UNSCANNED_VISIBLE_PUBLISH:false}
     scanner:
       enabled: ${SKILLHUB_SECURITY_SCANNER_ENABLED:true}
       base-url: ${SKILLHUB_SECURITY_SCANNER_URL:http://localhost:8000}

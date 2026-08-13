@@ -7,7 +7,7 @@ description: 当你需要通过 SkillHub 注册中心搜索、查看、安装或
 
 当你需要搜索、查看、安装或发布 SkillHub 技能时，使用本说明。
 
-> 重要：注册中心操作应优先使用 `clawhub` CLI。SkillHub 提供 ClawHub 兼容 API 和 `/.well-known/clawhub.json` 发现端点。仅在排查服务器问题时直接调用 HTTP 接口。
+> 重要：注册中心操作必须优先使用 `clawhub` CLI。SkillHub 提供 ClawHub 兼容 API 和 `/.well-known/clawhub.json` 发现端点。直接执行页面或用户提供的完整命令，不要根据技能坐标自行拼接 HTTP 下载地址。
 
 ## 核心规则
 
@@ -32,6 +32,8 @@ export CLAWHUB_REGISTRY=${SKILLHUB_PUBLIC_BASE_URL}
 ```bash
 npx clawhub install my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
+
+收到类似“安装 `@global/my-skill`”的任务时，应直接执行上面的完整命令。不得把它改写成 `/api/v1/skills/my-skill/...`。原生 API 的坐标包含命名空间，正确形式为 `/api/v1/skills/global/my-skill/...`；ClawHub 兼容 API 由 CLI 自动发现和调用。除非 CLI 确实无法运行，否则不要手动调用内部接口。
 
 如需访问受保护资源，请使用 API Token 登录：
 
@@ -67,9 +69,9 @@ curl ${SKILLHUB_PUBLIC_BASE_URL}/.well-known/clawhub.json
 示例：
 
 ```bash
-npx clawhub install my-skill
-npx clawhub install my-skill@1.2.0
-npx clawhub install team-name--my-skill
+npx clawhub install my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub install my-skill --version 1.2.0 --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub install team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 ## 常用操作
@@ -77,8 +79,8 @@ npx clawhub install team-name--my-skill
 ### 搜索
 
 ```bash
-npx clawhub search email
-npx clawhub search ""
+npx clawhub search email --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub search "" --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 空字符串用于获取较宽泛的技能列表。
@@ -86,16 +88,16 @@ npx clawhub search ""
 ### 查看技能信息
 
 ```bash
-npx clawhub info my-skill
-npx clawhub info team-name--my-skill
+npx clawhub inspect my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub inspect team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 ### 安装
 
 ```bash
-npx clawhub install my-skill
-npx clawhub install my-skill@1.2.0
-npx clawhub install team-name--my-skill
+npx clawhub install my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub install my-skill --version 1.2.0 --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub install team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 ### 发布
@@ -103,7 +105,7 @@ npx clawhub install team-name--my-skill
 准备好符合规范的技能目录，然后执行：
 
 ```bash
-npx clawhub publish ./my-skill
+npx clawhub publish ./my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 发布需要登录，并且当前用户必须拥有目标命名空间的发布权限。
@@ -115,6 +117,8 @@ npx clawhub publish ./my-skill
 - `NAMESPACE_ONLY`：仅已登录的命名空间成员可访问。
 - `PRIVATE`：仅所有者或明确授权的用户可访问。
 - 发布、星标等写操作始终需要登录。
+
+安装公开的 `@global` 技能时，不要先调用登录接口，也不要因为 `/api/v1/auth/me` 返回 `401` 而判定安装失败；该接口仅用于查询登录状态。应以 CLI 安装命令或公开下载请求本身的结果为准。
 
 请求返回 `403` 时，请检查：
 

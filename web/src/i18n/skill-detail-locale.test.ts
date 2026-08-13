@@ -14,4 +14,11 @@ describe('skill detail lifecycle locales', () => {
     expect(en.skillDetail.packageLinkMissingTitle).toBe('File not found')
     expect(en.skillDetail.packageLinkMissingDescription).toBe('This link points to a file that is not included in the current skill version.')
   })
+
+  it('defines the AI prompt installation labels in both locales', () => {
+    expect(zh.skillDetail.installMethodAgent).toBe('AI Prompt')
+    expect(zh.skillDetail.copyInstallPrompt).toBe('复制 Prompt')
+    expect(en.skillDetail.installMethodAgent).toBe('AI Prompt')
+    expect(en.skillDetail.copyInstallPrompt).toBe('Copy Prompt')
+  })
 })

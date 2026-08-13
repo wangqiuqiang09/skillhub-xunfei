@@ -48,6 +48,8 @@ services:
       SKILLHUB_STORAGE_PROVIDER: local
       STORAGE_BASE_PATH: /var/lib/skillhub/storage
       SKILLHUB_SECURITY_SCANNER_ENABLED: "false"
+      # Trusted internal profile: visible skills may be published without scan results.
+      SKILLHUB_SECURITY_ALLOW_UNSCANNED_VISIBLE_PUBLISH: "true"
       SKILLHUB_BUILTIN_SKILLS_ENABLED: ${SKILLHUB_BUILTIN_SKILLS_ENABLED:-true}
       SKILLHUB_TRACING_MODE: none
       SKILLHUB_LOG_ASYNC_QUEUE_SIZE: 256
