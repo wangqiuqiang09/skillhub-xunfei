@@ -95,11 +95,30 @@ const guideCopy = {
         caption: '首页提供 Agent / Human / CLI 三种入口；Agent 入口会生成指向当前服务器的 Registry 配置 Prompt。',
       },
     },
-    roles: {
+      roles: {
       user: {
         label: '使用者',
         summary: '找到、安装并通过 Agent 使用技能。',
         sections: [
+          {
+            id: 'account',
+            title: '注册账号并生成 API Token',
+            description: '公开技能可以匿名安装；注册账号和 API Token 用于访问受限技能、发布技能以及调用需要认证的 API。Token 只在创建成功后显示一次。',
+            steps: [
+              '打开右上角「登录」，在登录页选择「注册」；也可以直接访问 /register。若实例启用了企业 SSO，可切换到 OAuth 注册/登录。',
+              '填写用户名、邮箱和密码。默认仅支持 @x-sense.com 邮箱，管理员可通过部署环境变量调整；用户名为 3–64 位字母、数字或下划线，密码为 6–128 位。',
+              '提交后进入「控制台」，打开「访问凭证」卡片，点击「查看 API Tokens」，再点击「创建 API Token」。',
+              '为 Token 填写便于识别的名称（最多 64 个字符），选择永不过期、7 天、30 天、90 天或自定义过期时间，然后创建。',
+              '创建成功后立即点击复制并保存完整的 sk_... 值。关闭弹窗后无法再次查看原始 Token；不要把它提交到 Git、日志或技能包中。',
+              '不再使用时，在 API Tokens 列表中撤销/删除对应 Token。权限变更、设备丢失或人员离开团队时应立即撤销。',
+            ],
+            code: '# 将 Token 放入环境变量，避免写入脚本、配置或 Git\nexport SKILLHUB_TOKEN="sk_..."\nnpx @astron-team/skillhub@latest login --token "$SKILLHUB_TOKEN" --registry {{REGISTRY_URL}}\nnpx @astron-team/skillhub@latest whoami --registry {{REGISTRY_URL}}\n\n# 完成 CLI 操作后清除本机凭据\nnpx @astron-team/skillhub@latest logout --registry {{REGISTRY_URL}}',
+            image: {
+              src: '/guide-assets/homepage.png',
+              alt: 'SkillHub 首页登录入口',
+              caption: '从首页右上角登录进入账号流程；登录后在控制台的「访问凭证」中管理 API Token。',
+            },
+          },
           {
             id: 'discover',
             title: '发现和搜索技能',

@@ -33,6 +33,7 @@ public class DomainBeanConfig {
                 skillPublishProperties.getMaxFileCount(),
                 skillPublishProperties.getMaxSingleFileSize(),
                 skillPublishProperties.getMaxPackageSize(),
+                skillPublishProperties.isExtensionAllowlistEnabled(),
                 skillPublishProperties.getAllowedFileExtensions()
         );
     }

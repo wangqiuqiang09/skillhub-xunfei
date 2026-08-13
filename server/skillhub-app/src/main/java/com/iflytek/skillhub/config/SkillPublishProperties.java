@@ -14,6 +14,7 @@ public class SkillPublishProperties {
     private int maxFileCount = 500;
     private long maxSingleFileSize = 10 * 1024 * 1024;  // 10MB
     private long maxPackageSize = 100 * 1024 * 1024;
+    private boolean extensionAllowlistEnabled = true;
     private Set<String> allowedFileExtensions = new LinkedHashSet<>(SkillPackagePolicy.ALLOWED_EXTENSIONS);
 
     public int getMaxFileCount() {
@@ -38,6 +39,14 @@ public class SkillPublishProperties {
 
     public void setMaxPackageSize(long maxPackageSize) {
         this.maxPackageSize = maxPackageSize;
+    }
+
+    public boolean isExtensionAllowlistEnabled() {
+        return extensionAllowlistEnabled;
+    }
+
+    public void setExtensionAllowlistEnabled(boolean extensionAllowlistEnabled) {
+        this.extensionAllowlistEnabled = extensionAllowlistEnabled;
     }
 
     public Set<String> getAllowedFileExtensions() {

@@ -104,6 +104,28 @@ class SkillPackageValidatorTest {
     }
 
     @Test
+    void acceptsAnyExtensionWhenAllowlistIsDisabled() {
+        SkillPackageValidator unrestrictedValidator = new SkillPackageValidator(
+                new SkillMetadataParser(),
+                SkillPackagePolicy.MAX_FILE_COUNT,
+                SkillPackagePolicy.MAX_SINGLE_FILE_SIZE,
+                SkillPackagePolicy.MAX_TOTAL_PACKAGE_SIZE,
+                false,
+                SkillPackagePolicy.ALLOWED_EXTENSIONS
+        );
+        List<PackageEntry> entries = List.of(
+                skillMdEntry(),
+                new PackageEntry("tools/helper.exe", "binary".getBytes(), 6, "application/octet-stream"),
+                new PackageEntry("assets/archive.zip", "archive".getBytes(), 7, "application/zip")
+        );
+
+        ValidationResult result = unrestrictedValidator.validate(entries);
+
+        assertTrue(result.passed());
+        assertTrue(result.warnings().isEmpty());
+    }
+
+    @Test
     void testFileTooLarge() {
         // Use a custom validator with 1KB single file limit to test the logic
         SkillPackageValidator smallValidator = new SkillPackageValidator(

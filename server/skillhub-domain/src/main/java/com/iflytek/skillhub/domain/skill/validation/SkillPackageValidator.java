@@ -24,6 +24,7 @@ public class SkillPackageValidator {
     private final int maxFileCount;
     private final long maxSingleFileSize;
     private final long maxTotalPackageSize;
+    private final boolean extensionAllowlistEnabled;
     private final Set<String> allowedExtensions;
 
     public SkillPackageValidator(SkillMetadataParser metadataParser) {
@@ -33,6 +34,7 @@ public class SkillPackageValidator {
                 SkillPackagePolicy.MAX_FILE_COUNT,
                 SkillPackagePolicy.MAX_SINGLE_FILE_SIZE,
                 SkillPackagePolicy.MAX_TOTAL_PACKAGE_SIZE,
+                true,
                 SkillPackagePolicy.ALLOWED_EXTENSIONS
         );
     }
@@ -48,6 +50,24 @@ public class SkillPackageValidator {
                 maxFileCount,
                 maxSingleFileSize,
                 maxTotalPackageSize,
+                true,
+                allowedExtensions
+        );
+    }
+
+    public SkillPackageValidator(SkillMetadataParser metadataParser,
+                                 int maxFileCount,
+                                 long maxSingleFileSize,
+                                 long maxTotalPackageSize,
+                                 boolean extensionAllowlistEnabled,
+                                 Set<String> allowedExtensions) {
+        this(
+                metadataParser,
+                new ComplianceMetadataService(),
+                maxFileCount,
+                maxSingleFileSize,
+                maxTotalPackageSize,
+                extensionAllowlistEnabled,
                 allowedExtensions
         );
     }
@@ -57,12 +77,14 @@ public class SkillPackageValidator {
                                  int maxFileCount,
                                  long maxSingleFileSize,
                                  long maxTotalPackageSize,
+                                 boolean extensionAllowlistEnabled,
                                  Set<String> allowedExtensions) {
         this.metadataParser = metadataParser;
         this.complianceMetadataService = complianceMetadataService;
         this.maxFileCount = maxFileCount;
         this.maxSingleFileSize = maxSingleFileSize;
         this.maxTotalPackageSize = maxTotalPackageSize;
+        this.extensionAllowlistEnabled = extensionAllowlistEnabled;
         this.allowedExtensions = allowedExtensions.stream()
                 .map(String::toLowerCase)
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
@@ -87,7 +109,7 @@ public class SkillPackageValidator {
                 errors.add("Duplicate package entry path: " + normalizedPath);
             }
 
-            if (!hasAllowedExtension(normalizedPath)) {
+            if (extensionAllowlistEnabled && !hasAllowedExtension(normalizedPath)) {
                 warnings.add("Disallowed file extension: " + normalizedPath);
             }
 

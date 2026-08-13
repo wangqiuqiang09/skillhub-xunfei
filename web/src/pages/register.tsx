@@ -18,23 +18,6 @@ type RegisterFieldErrors = {
   password?: string
 }
 
-function countPasswordCharacterTypes(password: string) {
-  let typeCount = 0
-  if (/[a-z]/.test(password)) {
-    typeCount += 1
-  }
-  if (/[A-Z]/.test(password)) {
-    typeCount += 1
-  }
-  if (/\d/.test(password)) {
-    typeCount += 1
-  }
-  if (/[^A-Za-z0-9]/.test(password)) {
-    typeCount += 1
-  }
-  return typeCount
-}
-
 function isDuplicateUsernameError(errorKey: string) {
   return errorKey === 'error.auth.local.username.exists'
     || errorKey.includes('Username already exists')
@@ -89,11 +72,8 @@ export function RegisterPage() {
     if (!value) {
       return t('register.passwordRequired')
     }
-    if (value.length < 8) {
+    if (value.length < 6) {
       return t('register.passwordTooShort')
-    }
-    if (countPasswordCharacterTypes(value) < 3) {
-      return t('register.passwordTooWeak')
     }
     return undefined
   }
@@ -116,12 +96,12 @@ export function RegisterPage() {
         return { fieldErrors: { email: t('register.emailRequired') } }
       case 'validation.auth.local.email.invalid':
         return { fieldErrors: { email: t('register.emailInvalid') } }
+      case 'error.auth.local.email.suffixNotAllowed':
+        return { fieldErrors: { email: error.serverMessage || error.message } }
       case 'error.auth.local.username.invalid':
         return { fieldErrors: { username: t('register.usernameInvalid') } }
       case 'error.auth.local.password.tooShort':
         return { fieldErrors: { password: t('register.passwordTooShort') } }
-      case 'error.auth.local.password.tooWeak':
-        return { fieldErrors: { password: t('register.passwordTooWeak') } }
       case 'error.auth.local.username.exists':
         return { fieldErrors: { username: t('register.usernameExists') } }
       case 'error.auth.local.email.exists':

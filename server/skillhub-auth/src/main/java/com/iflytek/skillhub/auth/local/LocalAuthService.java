@@ -11,6 +11,7 @@ import com.iflytek.skillhub.domain.user.UserStatus;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -42,6 +43,7 @@ public class LocalAuthService {
     private final UserRoleBindingRepository userRoleBindingRepository;
     private final GlobalNamespaceMembershipService globalNamespaceMembershipService;
     private final PasswordPolicyValidator passwordPolicyValidator;
+    private final LocalRegistrationProperties registrationProperties;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
 
@@ -50,6 +52,7 @@ public class LocalAuthService {
                             UserRoleBindingRepository userRoleBindingRepository,
                             GlobalNamespaceMembershipService globalNamespaceMembershipService,
                             PasswordPolicyValidator passwordPolicyValidator,
+                            LocalRegistrationProperties registrationProperties,
                             PasswordEncoder passwordEncoder,
                             Clock clock) {
         this.credentialRepository = credentialRepository;
@@ -57,6 +60,7 @@ public class LocalAuthService {
         this.userRoleBindingRepository = userRoleBindingRepository;
         this.globalNamespaceMembershipService = globalNamespaceMembershipService;
         this.passwordPolicyValidator = passwordPolicyValidator;
+        this.registrationProperties = registrationProperties;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
     }
@@ -234,6 +238,18 @@ public class LocalAuthService {
         }
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new AuthFlowException(HttpStatus.BAD_REQUEST, "validation.auth.local.email.invalid");
+        }
+        List<String> allowedSuffixes = registrationProperties.getAllowedEmailSuffixes();
+        String emailDomain = email.substring(email.lastIndexOf('@') + 1);
+        if (!allowedSuffixes.isEmpty() && !allowedSuffixes.contains(emailDomain)) {
+            String suffixes = allowedSuffixes.stream()
+                    .map(suffix -> "@" + suffix)
+                    .collect(Collectors.joining(", "));
+            throw new AuthFlowException(
+                    HttpStatus.BAD_REQUEST,
+                    "error.auth.local.email.suffixNotAllowed",
+                    suffixes
+            );
         }
     }
 }
