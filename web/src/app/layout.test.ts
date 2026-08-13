@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { createElement } from 'react'
 
 // Layout is a component-only file with no exported pure functions or constants.
 // We verify that the named export exists for the router to consume.
@@ -53,5 +55,11 @@ describe('Layout', () => {
   it('exports a named Layout component function', () => {
     expect(typeof Layout).toBe('function')
     expect(Layout.name).toBe('Layout')
+  })
+
+  it('places the getting-started link beside the language switcher in the header', () => {
+    const html = renderToStaticMarkup(createElement(Layout))
+
+    expect(html).toContain('nav.guide')
   })
 })

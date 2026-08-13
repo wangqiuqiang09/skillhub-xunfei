@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from '@tanstack/react-router'
 import { Bot, Check, Copy, Terminal, UserRound } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCopyToClipboard } from '@/shared/lib/clipboard'
@@ -109,15 +108,6 @@ export function LandingQuickStartSection() {
           <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'hsl(var(--text-secondary))' }}>
             {t('landing.quickStart.description', { defaultValue: t('landing.quickStart.subtitle') })}
           </p>
-          <div className="mt-5">
-            <Link
-              to="/skills"
-              className="inline-flex items-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50"
-              style={{ borderColor: 'hsl(var(--border))', color: 'hsl(var(--foreground))' }}
-            >
-              {t('landing.quickStart.guide')}
-            </Link>
-          </div>
         </div>
 
         <div

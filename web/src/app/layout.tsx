@@ -7,6 +7,7 @@ import { UserMenu } from '@/shared/components/user-menu'
 import { NotificationBell } from '@/features/notification/notification-bell'
 import { dismissOpenOverlays } from '@/shared/lib/dismiss-open-overlays'
 import { syncDocumentLanguage } from '@/shared/lib/document-language'
+import { BookOpen } from 'lucide-react'
 import { getAppHeaderClassName } from './layout-header-style'
 import { getAppMainContentLayout, resolveAppMainContentPathname } from './layout-main-content'
 
@@ -115,7 +116,16 @@ export function Layout() {
           })}
         </nav>
 
-        <div className="flex items-center gap-6 text-[15px] font-normal" style={{ color: 'hsl(var(--text-secondary))' }}>
+        <div className="flex items-center gap-2 text-[15px] font-normal sm:gap-4 lg:gap-6" style={{ color: 'hsl(var(--text-secondary))' }}>
+          <Link
+            to="/guide"
+            aria-label={t('nav.guide')}
+            title={t('nav.guide')}
+            className="inline-flex h-8 items-center gap-2 rounded-md px-2 transition-colors hover:bg-secondary hover:text-foreground sm:px-3"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden whitespace-nowrap lg:inline">{t('nav.guide')}</span>
+          </Link>
           <LanguageSwitcher />
           {user && <NotificationBell />}
           {isLoading ? null : user ? (
@@ -198,9 +208,9 @@ export function Layout() {
                 </h4>
                 <ul className="space-y-2 text-sm">
                   <li>
-                    <a href="#" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
+                    <Link to="/guide" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
                       {t('footer.docs')}
-                    </a>
+                    </Link>
                   </li>
                   <li>
                     <a href="#" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>

@@ -18,6 +18,7 @@
     "dashboard": "Dashboard",
     "mySkills": "My Skills",
     "publish": "Publish",
+    "guide": "Getting Started",
     "login": "Login"
   },
   "landing": {
@@ -110,7 +111,6 @@
       "title": "Quick Start",
       "subtitle": "快速开始",
       "description": "Choose how you want to work, then copy the setup instruction and continue",
-      "guide": "Browse the skill center",
       "tip": "💡 Tip: Visit the skill detail page for one-click install commands with environment variables",
       "tabs": {
         "agent": "I am Agent",
