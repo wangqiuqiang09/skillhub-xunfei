@@ -24,6 +24,9 @@ COPY runtime-config.js.template /usr/share/nginx/html/runtime-config.js.template
 COPY docker-entrypoint.d/20-base-path.sh /docker-entrypoint.d/20-base-path.sh
 COPY docker-entrypoint.d/30-runtime-config.sh /docker-entrypoint.d/30-runtime-config.sh
 RUN chmod +x /docker-entrypoint.d/20-base-path.sh /docker-entrypoint.d/30-runtime-config.sh
+# Build contexts may preserve restrictive source permissions; Nginx workers must be able
+# to read all generated pages and static assets at runtime.
+RUN chmod -R a+rX /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=10s --timeout=3s \
   CMD wget -qO- http://127.0.0.1/nginx-health || exit 1

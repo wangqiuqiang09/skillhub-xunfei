@@ -1,13 +1,13 @@
 ---
 name: skillhub-registry
-description: 当你需要通过 SkillHub 注册中心搜索、查看、安装或发布 Agent 技能时使用。SkillHub 提供 ClawHub 兼容 API，注册中心操作应优先使用 clawhub CLI，而不是直接调用 HTTP 接口。
+description: 当你需要通过 SkillHub 注册中心搜索、查看、安装或发布 Agent 技能时使用。优先使用 SkillHub CLI；平台也提供 ClawHub 兼容 API。不要自行拼接内部 HTTP 接口。
 ---
 
 # SkillHub 技能注册中心
 
 当你需要搜索、查看、安装或发布 SkillHub 技能时，使用本说明。
 
-> 重要：注册中心操作必须优先使用 `clawhub` CLI。SkillHub 提供 ClawHub 兼容 API 和 `/.well-known/clawhub.json` 发现端点。直接执行页面或用户提供的完整命令，不要根据技能坐标自行拼接 HTTP 下载地址。
+> 重要：优先使用 `npx @astron-team/skillhub@latest`。直接执行页面或用户提供的完整命令，不要根据技能坐标自行拼接 HTTP 下载地址。使用 ClawHub 兼容客户端时，由 `/.well-known/clawhub.json` 自动发现 API。
 
 ## 核心规则
 
@@ -15,30 +15,58 @@ description: 当你需要通过 SkillHub 注册中心搜索、查看、安装或
 - ClawHub CLI 使用 `{namespace}--{skill_slug}` 格式。
 - `@global/my-skill` 在 ClawHub 中可写为 `my-skill`。
 - `@team-name/my-skill` 在 ClawHub 中写为 `team-name--my-skill`。
-- `latest` 只表示最新的已发布版本，不包括草稿或待审核版本。
-- `@global` 下的公开技能允许匿名下载。
-- 团队命名空间技能和非公开技能需要登录。
+- 对 `PUBLIC` 和 `NAMESPACE_ONLY`，`latest` 表示最新的 `PUBLISHED` 版本，不包括草稿、待审核或被拒绝版本。
+- 对 `PRIVATE`，`latest` 指向当前用户有权访问的最新上传版本。
+- 所有命名空间中的 `PUBLIC` 技能均允许匿名查看、下载和安装；`@global` 只是默认命名空间。
+- `NAMESPACE_ONLY` 和 `PRIVATE` 技能需要登录并具备权限。
 
 ## 配置 CLI
 
-将 ClawHub 注册中心设置为当前 SkillHub 服务器地址：
+无需全局安装，直接运行：
+
+```bash
+npx @astron-team/skillhub@latest --help
+```
+
+每条远端命令都应显式传入当前服务器，避免回落到其他默认实例：
+
+```bash
+export SKILLHUB_REGISTRY=${SKILLHUB_PUBLIC_BASE_URL}
+```
+
+或在每条命令中传入。下面的 `skillhub-hello` 是默认启用的内置入门技能，可直接执行；若实例关闭了内置技能，先搜索并替换为任一实际存在的 `PUBLIC` 技能：
+
+```bash
+npx @astron-team/skillhub@latest search skillhub-hello --registry ${SKILLHUB_PUBLIC_BASE_URL}
+```
+
+需要使用 ClawHub 兼容客户端时，可设置：
 
 ```bash
 export CLAWHUB_REGISTRY=${SKILLHUB_PUBLIC_BASE_URL}
+npx clawhub search skillhub-hello --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
-也可以在每条命令中指定 `--registry`：
+安装还必须明确本地目标，避免交互选择或 `multiple install targets detected`：
 
 ```bash
-npx clawhub install my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+# Codex 用户级安装示例
+npx @astron-team/skillhub@latest install skillhub-hello \
+  --scope user --agent codex \
+  --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
-收到类似“安装 `@global/my-skill`”的任务时，应直接执行上面的完整命令。不得把它改写成 `/api/v1/skills/my-skill/...`。原生 API 的坐标包含命名空间，正确形式为 `/api/v1/skills/global/my-skill/...`；ClawHub 兼容 API 由 CLI 自动发现和调用。除非 CLI 确实无法运行，否则不要手动调用内部接口。
+- 已知 Agent profile 时使用 `--scope <user|project> --agent <profile>`。
+- 已知准确目录时可改用 `--dir <path>`，此时不要同时传 `--scope` 或 `--agent`。
+- 不要只传 `--scope` 后假设目标唯一；同一 scope 下可能检测到多个 Agent。
+- 不确定 profile 时先运行 `npx @astron-team/skillhub@latest help install`，不要猜目录。
+
+收到类似“安装 `@global/my-skill`”的任务时，应使用完整 CLI 命令。不得改写成 `/api/v1/skills/my-skill/...`。原生 API 坐标包含命名空间；除非 CLI 确实无法运行，否则不要手动调用内部接口。
 
 如需访问受保护资源，请使用 API Token 登录：
 
 ```bash
-clawhub login --token sk_your_api_token_here
+npx @astron-team/skillhub@latest login --token "$SKILLHUB_TOKEN" --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 检查服务发现配置：
@@ -64,14 +92,13 @@ curl ${SKILLHUB_PUBLIC_BASE_URL}/.well-known/clawhub.json
 
 - `--` 是 ClawHub 兼容层的命名空间分隔符。
 - 不包含 `--` 时，技能默认属于 `@global`。
-- `latest` 始终解析为最新的已发布版本。
+- `PUBLIC`/`NAMESPACE_ONLY` 的 `latest` 解析为最新已发布版本；`PRIVATE` 的 `latest` 解析为有权访问的最新上传版本。
 
-示例：
+可直接执行的 `@global/skillhub-hello` 示例：
 
 ```bash
-npx clawhub install my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
-npx clawhub install my-skill --version 1.2.0 --registry ${SKILLHUB_PUBLIC_BASE_URL}
-npx clawhub install team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx @astron-team/skillhub@latest install skillhub-hello --scope user --agent codex --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx @astron-team/skillhub@latest install skillhub-hello --version 1.0.0 --scope user --agent codex --force --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 ## 常用操作
@@ -79,50 +106,53 @@ npx clawhub install team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ### 搜索
 
 ```bash
-npx clawhub search email --registry ${SKILLHUB_PUBLIC_BASE_URL}
-npx clawhub search "" --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx @astron-team/skillhub@latest search skillhub-hello --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx @astron-team/skillhub@latest search "" --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 空字符串用于获取较宽泛的技能列表。
 
-### 查看技能信息
-
-```bash
-npx clawhub inspect my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
-npx clawhub inspect team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
-```
-
 ### 安装
 
 ```bash
-npx clawhub install my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
-npx clawhub install my-skill --version 1.2.0 --registry ${SKILLHUB_PUBLIC_BASE_URL}
-npx clawhub install team-name--my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx @astron-team/skillhub@latest install skillhub-hello --scope user --agent codex --registry ${SKILLHUB_PUBLIC_BASE_URL}
+npx @astron-team/skillhub@latest install skillhub-hello --version 1.0.0 --scope user --agent codex --force --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 ### 发布
 
-准备好符合规范的技能目录，然后执行：
+网页指南中的一键发布 Prompt 固定使用 `global` 命名空间和 `public` 可见性。用户在发送 Prompt 前填写真实技能目录和本次发布专用的一次性 Token；发送 Prompt 本身即表示授权 Agent 连续执行审计、登录、dry-run 和正式发布，无需中途重复确认。
+
+发布前的 Agent 工作流：
+
+- 将审计发现分成“阻断问题”和“能力披露”。硬编码凭据、未说明的数据外传、越界或不可逆删除、恶意或隐蔽执行属于阻断问题；与技能用途相符且已说明的联网、外部命令和限定目录文件操作仅需披露并让用户确认，不得仅因此终止。
+- 用户可以把本次发布专用的一次性 Token 直接交给 Agent，也可以设置 `SKILLHUB_TOKEN`。Agent 不得回显、复述或把 Token 写入项目文件和日志，但不得仅因 Token 出现在当前对话中终止任务。
+- 开始前先要求用户从“控制台 → 访问凭证 → API Tokens”创建一次性 Token，并把 Token 与技能目录一起填入发布 Prompt。
+- 对这份固定 `global` + `public` Prompt，发送动作已经完成授权。仅在发现阻断问题或命令失败时暂停；否则 dry-run 通过后直接正式发布。
+- 完成或中止时执行 `logout --registry ...` 清除本机凭据，并提醒用户立即在网页撤销一次性 Token。网页撤销必须由用户完成。
 
 ```bash
-npx clawhub publish ./my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
+export SKILL_DIR=./my-skill
+export TARGET_NAMESPACE=global
+export SKILL_VISIBILITY=public
+printf 'directory=%s\nnamespace=%s\nvisibility=%s\n' "$SKILL_DIR" "$TARGET_NAMESPACE" "$SKILL_VISIBILITY"
+npx @astron-team/skillhub@latest publish "$SKILL_DIR" --namespace "$TARGET_NAMESPACE" --visibility "$SKILL_VISIBILITY" --registry ${SKILLHUB_PUBLIC_BASE_URL} --dry-run
+npx @astron-team/skillhub@latest publish "$SKILL_DIR" --namespace "$TARGET_NAMESPACE" --visibility "$SKILL_VISIBILITY" --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ```
 
 发布需要登录，并且当前用户必须拥有目标命名空间的发布权限。
 
 ## 权限与可见性
 
-- `@global` + `PUBLIC`：允许匿名搜索、查看和下载。
-- 团队命名空间 + `PUBLIC`：下载仍然需要登录。
+- 任意命名空间 + `PUBLIC`：允许匿名搜索、查看、下载和安装。
 - `NAMESPACE_ONLY`：仅已登录的命名空间成员可访问。
 - `PRIVATE`：仅所有者或明确授权的用户可访问。
 - 发布、星标等写操作始终需要登录。
 
-安装公开的 `@global` 技能时，不要先调用登录接口，也不要因为 `/api/v1/auth/me` 返回 `401` 而判定安装失败；该接口仅用于查询登录状态。应以 CLI 安装命令或公开下载请求本身的结果为准。
+安装 `PUBLIC` 技能时，不要先调用登录接口，也不要因为 `/api/v1/auth/me` 返回 `401` 而判定安装失败；该接口仅用于查询登录状态。应以 CLI 安装命令成功并输出安装目录为准，随后读取安装目录中的 `SKILL.md`。
 
 请求返回 `403` 时，请检查：
 
-- 技能是否属于团队命名空间；
 - 技能是否为 `NAMESPACE_ONLY` 或 `PRIVATE`；
 - API Token 是否有效；
 - 当前用户是否有目标命名空间的操作权限。
@@ -130,3 +160,7 @@ npx clawhub publish ./my-skill --registry ${SKILLHUB_PUBLIC_BASE_URL}
 ## 技能包规范
 
 SkillHub 使用 OpenSkills 风格的技能包，入口文件必须为 `SKILL.md`。发布前请确认文件内容完整，并排除密钥、Token、临时文件和个人隐私数据。
+
+## 给用户的完成报告
+
+安装完成后只需报告：技能坐标、安装版本、安装目录，以及是否成功读取 `SKILL.md`。失败时保留 CLI 原始错误并给出一个明确的下一步；不要用登录成功或 `/api/v1/auth/me` 的状态替代安装结果。

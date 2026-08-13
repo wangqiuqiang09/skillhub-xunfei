@@ -34,6 +34,18 @@ run_entrypoint "$server_url"
 
 grep -Fq "export CLAWHUB_REGISTRY=$server_url" "$tmp/html/registry/skill.md"
 grep -Fq -- "--registry $server_url" "$tmp/html/registry/skill.md"
+grep -Fq "search skillhub-hello --registry $server_url" "$tmp/html/registry/skill.md"
+grep -Fq "install skillhub-hello --scope user --agent codex --registry $server_url" "$tmp/html/registry/skill.md"
+grep -Fq 'export SKILL_DIR=./my-skill' "$tmp/html/registry/skill.md"
+grep -Fq 'printf '\''directory=%s\nnamespace=%s\nvisibility=%s\n'\''' "$tmp/html/registry/skill.md"
+grep -Fq '一次性 Token' "$tmp/html/registry/skill.md"
+grep -Fq '能力披露' "$tmp/html/registry/skill.md"
+grep -Fq '固定使用 `global` 命名空间和 `public` 可见性' "$tmp/html/registry/skill.md"
+grep -Fq '无需中途重复确认' "$tmp/html/registry/skill.md"
+if grep -Fq 'hello-world' "$tmp/html/registry/skill.md"; then
+  echo 'registry/skill.md must use the shipped skillhub-hello starter skill' >&2
+  exit 1
+fi
 if grep -Fq '${SKILLHUB_PUBLIC_BASE_URL}' "$tmp/html/registry/skill.md"; then
   echo 'registry/skill.md must not contain an unresolved server URL' >&2
   exit 1
