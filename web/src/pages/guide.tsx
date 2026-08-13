@@ -59,18 +59,21 @@ const guideCopy = {
       {
         id: 'latest',
         title: '让使用者始终先更新 latest',
-        description: '把更新要求写入技能的 SKILL.md。团队日常使用 latest，只有回滚、审计或复现实验时才固定旧版本。',
-        code: '## 使用前置步骤\n\n每次执行本技能前，必须先从 SkillHub 更新 latest 版本：\n\n```bash\nclawhub install kb-ops--my-skill@latest --force\n```\n\n更新完成后，重新读取本技能的 SKILL.md，再继续执行用户任务。',
+        description: '把版本检查规则写入技能的 SKILL.md。网络和权限允许时必须更新 latest；检查或更新失败时可以继续使用本地版本，但必须向用户提示失败，且不能声称本地版本是最新版本。',
+        code: '## 使用前置检查\n\n每次使用本技能处理任务前，必须优先检查 SkillHub 上是否存在新版本。\n\n1. 尝试连接 SkillHub 并检查本技能的最新已发布版本。\n2. 如果存在新版本，更新到 `latest`。\n3. 更新成功后，重新读取新版 `SKILL.md`，再执行用户任务。\n4. 如果因为断网、超时、服务不可用或权限不足导致检查或更新失败：\n   - 继续使用当前本地版本完成任务；\n   - 在任务结果中明确提示“版本检查失败，本次使用本地版本”；\n   - 不得声称当前版本是最新版本；\n   - 不得反复重试或阻塞用户任务。\n\n```bash\nclawhub install kb-ops--my-skill@latest --force\n```\n\n失败提示：版本检查失败，当前无法连接 SkillHub 或完成更新，本次任务继续使用本地版本；当前版本可能不是最新版本。',
       },
       {
         id: 'consume',
         title: '普通用户如何使用已发布技能',
+        description: '`@global` 下已发布的 PUBLIC 技能可匿名浏览、下载和安装，不要求登录。团队命名空间的技能，以及 NAMESPACE_ONLY 或 PRIVATE 技能，需要登录并具备相应权限。',
         steps: [
-          '在 SkillHub 搜索技能并打开详情页，检查简介、版本、发布者和审核状态。',
+          '可以直接访问已发布的 PUBLIC 技能详情页；匿名搜索也只会返回公开技能。',
+          '安装 @global 下的 PUBLIC 技能时无需登录。',
+          '访问团队命名空间，或安装 NAMESPACE_ONLY、PRIVATE 技能时，先使用 API Token 登录。',
           '复制详情页中的安装命令。',
-          '在本地终端或 Agent 对话中执行安装命令。',
-          '团队命名空间使用 namespace--skill 的 ClawHub 兼容格式，并在使用前更新 latest。',
+          '在本地终端或 Agent 对话中执行安装命令，并在使用前检查 latest。',
         ],
+        code: '# @global 下的 PUBLIC 技能：无需登录\nclawhub install my-skill@latest --force\n\n# 团队命名空间或受限技能：需要登录\nclawhub login --token sk_your_api_token_here\nclawhub install kb-ops--my-skill@latest --force',
       },
     ] satisfies GuideSection[],
   },
@@ -89,8 +92,8 @@ const guideCopy = {
       { id: 'namespace', title: 'Create a namespace', steps: ['Open Namespaces from Dashboard.', 'Create a namespace and provide its name, slug, and purpose.', 'Use lowercase letters, numbers, and hyphens for the slug, such as kb-ops.', 'Add collaborators and assign OWNER, ADMIN, or MEMBER roles.'] },
       { id: 'admin', title: 'Request administrator access', description: 'Namespace administrators manage team membership, publishing, and reviews. Platform administrators manage global users, auditing, and cross-namespace governance. Include the account, scope, purpose, and duration in your request.', code: 'Please grant Admin access to the kb-ops namespace.\nAccount: admin-user@example.com\nPurpose: manage members, publishing reviews, and version governance.\nDuration: ongoing, reviewed regularly by the team owner.' },
       { id: 'agent-publish', title: 'Publish through an agent conversation', description: 'Prepare the skill directory locally, then ask an agent to validate SKILL.md, exclude secrets and temporary files, package it, and publish it.', code: 'Help me publish a SkillHub skill.\n\nLocal directory: ./my-skill\nTarget namespace: kb-ops\nVersion: 1.0.0\n\nValidate SKILL.md and the package structure. Confirm that no secrets, tokens, temporary files, or personal data are included. After publishing, verify that latest points to the new version and provide a copyable install command.' },
-      { id: 'latest', title: 'Always update latest before use', description: 'Put the update requirement in SKILL.md. Use latest for normal team workflows and pin an older version only for rollback, audit, or reproducibility.', code: '## Prerequisite\n\nBefore every run, update the latest version from SkillHub:\n\n```bash\nclawhub install kb-ops--my-skill@latest --force\n```\n\nAfter updating, read SKILL.md again before continuing the task.' },
-      { id: 'consume', title: 'Use a published skill', steps: ['Search SkillHub and open the skill detail page.', 'Review its summary, version, publisher, and review status.', 'Copy and run the install command in a terminal or agent conversation.', 'Use the namespace--skill compatibility format for team namespaces and update latest before use.'] },
+      { id: 'latest', title: 'Always check latest before use', description: 'Put the version policy in SKILL.md. Update latest when network access and permissions allow it. If the check or update fails, continue with the local version, warn the user, and never claim that it is current.', code: '## Version check before use\n\nBefore every task, check SkillHub for a newer published version.\n\n1. Try to connect to SkillHub and check the latest published version.\n2. Update to `latest` when a newer version exists.\n3. After a successful update, read the new `SKILL.md` before executing the task.\n4. If the check or update fails because of network, timeout, service, or permission errors:\n   - continue the task with the current local version;\n   - report that the version check failed and the local version is being used;\n   - do not claim that the local version is current;\n   - do not repeatedly retry or block the user task.\n\n```bash\nclawhub install kb-ops--my-skill@latest --force\n```\n\nFailure notice: Version check failed. SkillHub could not be reached or the update could not be completed. This task will use the local version, which may not be current.' },
+      { id: 'consume', title: 'Use a published skill', description: 'Published PUBLIC skills under @global can be browsed, downloaded, and installed anonymously. Team-namespace skills and NAMESPACE_ONLY or PRIVATE skills require authentication and the appropriate permission.', steps: ['Open a published PUBLIC skill directly; anonymous search also returns public skills only.', 'Install a PUBLIC skill under @global without signing in.', 'Sign in with an API token before accessing a team namespace or installing a NAMESPACE_ONLY or PRIVATE skill.', 'Copy the install command and check latest before use.'], code: '# PUBLIC skill under @global: no login required\nclawhub install my-skill@latest --force\n\n# Team namespace or restricted skill: login required\nclawhub login --token sk_your_api_token_here\nclawhub install kb-ops--my-skill@latest --force' },
     ] satisfies GuideSection[],
   },
 } as const
@@ -125,7 +128,7 @@ export function GuidePage() {
   const language = i18n.resolvedLanguage?.split('-')[0] === 'zh' ? 'zh' : 'en'
   const copy = guideCopy[language]
   const registryUrl = getRegistryUrl()
-  const cliCommands = `export CLAWHUB_REGISTRY=${registryUrl}\nclawhub login\nclawhub search keyword\nclawhub install kb-ops--my-skill@latest --force`
+  const publishCommands = `export CLAWHUB_REGISTRY=${registryUrl}\nclawhub login\nclawhub publish ./my-skill --namespace kb-ops`
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[180px_minmax(0,1fr)]">
@@ -161,7 +164,7 @@ export function GuidePage() {
                 </ol>
               ) : null}
               {section.code ? <CodeBlock>{section.code}</CodeBlock> : null}
-              {section.id === 'agent-publish' || section.id === 'consume' ? <CodeBlock>{cliCommands}</CodeBlock> : null}
+              {section.id === 'agent-publish' ? <CodeBlock>{publishCommands}</CodeBlock> : null}
             </section>
           ))}
         </div>
