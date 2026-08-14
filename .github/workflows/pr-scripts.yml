@@ -8,6 +8,7 @@ on:
       - '.env.release.draft'
       - 'compose.release.yml'
       - 'compose.low-resource.yml'
+      - 'docker-compose.staging.yml'
       - 'Makefile'
       - 'web/Dockerfile'
       - 'server/Dockerfile.low-resource'

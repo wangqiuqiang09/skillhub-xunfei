@@ -15,7 +15,6 @@ fi
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 NGINX_IMAGE="${NGINX_SMOKE_IMAGE:-nginx:alpine}"
 name="skillhub-base-path-smoke-$$"
-port=18080
 
 tmp=$(mktemp -d)
 cleanup() {
@@ -25,9 +24,11 @@ cleanup() {
 trap cleanup EXIT
 
 html="$tmp/html"
-mkdir -p "$html/assets"
+mkdir -p "$html/assets" "$html/registry"
 printf '%s\n' 'INDEX_HTML_MARKER' >"$html/index.html"
 printf '%s\n' 'APP_JS_MARKER' >"$html/assets/app.js"
+printf '%s\n' '技能检查更新' >"$html/registry/skill.md"
+chmod -R a+rX "$html"
 
 # The image build chmods the entrypoint scripts; here we mount a copy and make it
 # executable, since the nginx entrypoint silently ignores non-executable *.sh.
@@ -37,7 +38,7 @@ cp "$ROOT_DIR/web/docker-entrypoint.d/20-base-path.sh" "$entrypoint_d/20-base-pa
 chmod +x "$entrypoint_d/20-base-path.sh"
 
 if ! docker run -d --name "$name" \
-    -p "$port:80" \
+    -p 127.0.0.1::80 \
     -e SKILLHUB_API_UPSTREAM=http://127.0.0.1:9 \
     -e SKILLHUB_TRUST_FORWARDED_PROTO=false \
     -e SKILLHUB_WEB_BASE_PATH=/skillhub/ \
@@ -49,6 +50,11 @@ if ! docker run -d --name "$name" \
   exit 0
 fi
 
+port=$(docker port "$name" 80/tcp | sed -n '1s/.*://p')
+if [ -z "$port" ]; then
+  echo 'failed to determine dynamically allocated nginx port' >&2
+  exit 1
+fi
 base="http://127.0.0.1:$port"
 ready=0
 i=0
@@ -63,6 +69,20 @@ done
 if [ "$ready" -ne 1 ]; then
   echo 'nginx did not become ready' >&2
   docker logs "$name" >&2 || true
+  exit 1
+fi
+
+# Registry instructions contain Chinese text and must declare UTF-8 explicitly;
+# otherwise browsers can decode the valid UTF-8 file using a legacy charset.
+registry_headers="$tmp/registry-headers"
+registry_body=$(curl -fsS -D "$registry_headers" "$base/skillhub/registry/skill.md")
+if [ "$registry_body" != '技能检查更新' ]; then
+  echo "registry skill body must preserve UTF-8 text, got: $registry_body" >&2
+  exit 1
+fi
+if ! grep -iq '^Content-Type: text/plain; charset=utf-8' "$registry_headers"; then
+  echo 'registry skill response must declare text/plain; charset=utf-8' >&2
+  sed -n '1,20p' "$registry_headers" >&2
   exit 1
 fi
 
@@ -97,13 +117,14 @@ fixed_html="$tmp/fixed-html"
 mkdir -p "$fixed_html/assets"
 printf '%s\n' 'INDEX_HTML_MARKER' >"$fixed_html/index.html"
 printf '%s\n' 'FIXED_APP_JS_MARKER' >"$fixed_html/assets/app.js"
+chmod -R a+rX "$fixed_html"
 baked_file="$tmp/baked-base-path"
 printf '%s' '/fixed/' >"$baked_file"
+chmod a+r "$baked_file"
 fixed_name="$name-fixed"
-fixed_port=18081
 
 docker run -d --name "$fixed_name" \
-  -p "$fixed_port:80" \
+  -p 127.0.0.1::80 \
   -e SKILLHUB_API_UPSTREAM=http://127.0.0.1:9 \
   -e SKILLHUB_TRUST_FORWARDED_PROTO=false \
   -e SKILLHUB_WEB_BASE_PATH= \
@@ -114,6 +135,11 @@ docker run -d --name "$fixed_name" \
   -v "$entrypoint_d/20-base-path.sh:/docker-entrypoint.d/20-base-path.sh:ro" \
   "$NGINX_IMAGE" >/dev/null 2>&1
 
+fixed_port=$(docker port "$fixed_name" 80/tcp | sed -n '1s/.*://p')
+if [ -z "$fixed_port" ]; then
+  echo 'failed to determine dynamically allocated fixed-base nginx port' >&2
+  exit 1
+fi
 fixed_base="http://127.0.0.1:$fixed_port"
 ready=0
 i=0

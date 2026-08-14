@@ -3,6 +3,8 @@ set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 ENTRYPOINT="$ROOT_DIR/web/docker-entrypoint.d/30-runtime-config.sh"
+STAGING_COMPOSE="$ROOT_DIR/docker-compose.staging.yml"
+MAKEFILE="$ROOT_DIR/Makefile"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
@@ -50,5 +52,14 @@ if grep -Fq '${SKILLHUB_PUBLIC_BASE_URL}' "$tmp/html/registry/skill.md"; then
   echo 'registry/skill.md must not contain an unresolved server URL' >&2
   exit 1
 fi
+
+grep -Fq 'image: skillhub-web:staging' "$STAGING_COMPOSE" \
+  || { echo 'staging must run the SkillHub web image so runtime instructions are generated' >&2; exit 1; }
+grep -Fq 'SKILLHUB_PUBLIC_BASE_URL: "http://localhost"' "$STAGING_COMPOSE" \
+  || { echo 'staging must provide a concrete public URL to the web entrypoint' >&2; exit 1; }
+grep -Fq 'docker build -t $(STAGING_WEB_IMAGE) -f web/Dockerfile web' "$MAKEFILE" \
+  || { echo 'staging must build the SkillHub web image' >&2; exit 1; }
+grep -Fq '$(STAGING_WEB_URL)/registry/skill.md' "$MAKEFILE" \
+  || { echo 'staging must verify generated registry instructions' >&2; exit 1; }
 
 printf '%s\n' 'registry-skill-runtime-test passed'

@@ -12,6 +12,7 @@ DEV_SCANNER_URL := http://localhost:8000
 STAGING_API_URL := http://localhost:8080
 STAGING_WEB_URL := http://localhost
 STAGING_SERVER_IMAGE := skillhub-server:staging
+STAGING_WEB_IMAGE := skillhub-web:staging
 DEV_PROCESS := bash scripts/dev-process.sh
 DEV_SERVER_PREPARE := true
 DEV_SERVER_CMD := ./scripts/run-dev-app.sh
@@ -302,12 +303,12 @@ db-reset: ## 重置数据库
 validate-release-config: ## 校验发布环境变量文件（默认 .env.release）
 	./scripts/validate-release-config.sh .env.release
 
-staging: ## 构建并启动 staging 环境，运行 smoke test（混合模式：后端镜像 + 前端静态文件）
+staging: ## 构建并启动 staging 环境，运行 smoke test
 	@echo "=== [1/5] Building backend JAR and Docker image ==="
 	cd server && ./mvnw package -DskipTests -B -q
 	docker build -t $(STAGING_SERVER_IMAGE) -f server/Dockerfile.dev server
-	@echo "=== [2/5] Building frontend static files ==="
-	cd web && pnpm run build
+	@echo "=== [2/5] Building frontend Docker image ==="
+	docker build -t $(STAGING_WEB_IMAGE) -f web/Dockerfile web
 	@echo "=== [3/5] Starting dependency services ==="
 	$(STAGING_BASE_COMPOSE) up -d --wait
 	@echo "=== [4/5] Starting staging services ==="
@@ -315,6 +316,11 @@ staging: ## 构建并启动 staging 环境，运行 smoke test（混合模式：
 	@echo "=== [5/5] Running smoke tests ==="
 	@if SMOKE_ADMIN_USERNAME=admin SMOKE_ADMIN_PASSWORD='Admin@staging2026' \
 		bash scripts/smoke-test.sh $(STAGING_API_URL); then \
+		registry_doc=$$(curl -fsS $(STAGING_WEB_URL)/registry/skill.md) && \
+		printf '%s' "$$registry_doc" | grep -Fq -- '--registry $(STAGING_WEB_URL)' || { \
+			echo "Registry instructions are missing or use the wrong public URL."; \
+			exit 1; \
+		}; \
 		echo ""; \
 		echo "Staging passed. Environment is running:"; \
 		echo "  Web UI:  $(STAGING_WEB_URL)"; \
