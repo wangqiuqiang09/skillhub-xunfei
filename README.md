@@ -325,12 +325,34 @@ Recommended production baseline:
 If the GHCR package remains private, run `docker login ghcr.io` before
 `docker compose up -d`.
 
+### Local Registration Email Domains
+
+Local account registration accepts `@x-sense.com` addresses by default. Configure one or more
+allowed domains as a comma-separated list:
+
+```bash
+SKILLHUB_AUTH_LOCAL_ALLOWED_EMAIL_SUFFIXES=x-sense.com,example.org
+```
+
+Values may include a leading `@` and are matched case-insensitively against the complete email
+domain. Set the variable to `*` to allow every valid email domain. This setting affects local
+registration only; OAuth and enterprise SSO identities are unchanged.
+
 ### Upload Allowlist Override
 
 Skill package upload validation uses the default extension allowlist from
 [`SkillPackagePolicy.java`](./server/skillhub-domain/src/main/java/com/iflytek/skillhub/domain/skill/validation/SkillPackagePolicy.java).
 `SkillPublishProperties` uses that same list by default for
 `skillhub.publish.allowed-file-extensions`.
+
+To accept every extension, including extensionless files, set:
+
+```bash
+SKILLHUB_PUBLISH_EXTENSION_ALLOWLIST_ENABLED=false
+```
+
+This disables only extension allowlist warnings. Required `SKILL.md`, archive-path safety,
+duplicate-path, file-count, file-size, package-size, and known-format signature checks remain active.
 
 If you need to replace the default allowlist at runtime, set:
 

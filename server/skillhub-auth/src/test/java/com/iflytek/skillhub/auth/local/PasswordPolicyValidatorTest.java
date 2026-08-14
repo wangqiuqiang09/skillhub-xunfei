@@ -17,7 +17,7 @@ class PasswordPolicyValidatorTest {
 
     @Test
     void tooShort_fails() {
-        assertThat(validator.validate("Ab1!xyz")).containsExactly("error.auth.local.password.tooShort");
+        assertThat(validator.validate("abcde")).containsExactly("error.auth.local.password.tooShort");
     }
 
     @Test
@@ -26,13 +26,13 @@ class PasswordPolicyValidatorTest {
     }
 
     @Test
-    void twoCharTypes_fails() {
-        assertThat(validator.validate("abcdefgh1")).containsExactly("error.auth.local.password.tooWeak");
+    void sixCharacterPassword_passes() {
+        assertThat(validator.validate("abcdef")).isEmpty();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"Abcdefg1", "Abcdef1!", "abcdef1!", "ABCDEF1!"})
-    void threeCharTypes_pass(String password) {
+    void passwords_with_different_character_types_pass(String password) {
         assertThat(validator.validate(password)).isEmpty();
     }
 }

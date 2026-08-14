@@ -17,6 +17,12 @@ export default defineConfig({
   build: {
     target: JS_BUILD_TARGET,
     cssTarget: LEGACY_BROWSER_TARGETS,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/app-[hash].js',
+        chunkFileNames: 'assets/chunk-[hash].js',
+      },
+    },
   },
   optimizeDeps: {
     esbuildOptions: {

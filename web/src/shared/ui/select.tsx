@@ -29,6 +29,10 @@ export const SELECT_SCROLL_BUTTON_CLASS_NAME = cn(
   'flex cursor-pointer items-center justify-center py-1 text-muted-foreground'
 )
 
+export const SELECT_VIEWPORT_CLASS_NAME = cn(
+  'p-1 min-h-[var(--radix-select-trigger-height)] max-h-80 min-w-[var(--radix-select-trigger-width)]'
+)
+
 export function normalizeSelectValue(value?: string | null) {
   return typeof value === 'string' && value.length > 0 ? value : undefined
 }
@@ -108,8 +112,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Viewport
       className={cn(
         'p-1',
-        position === 'popper'
-          && 'h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]'
+        position === 'popper' && SELECT_VIEWPORT_CLASS_NAME,
       )}
     >
       {children}

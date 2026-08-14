@@ -46,10 +46,14 @@ x-astron-category: code-review
 
 ## 文件限制
 
-- 单文件大小：最大 1MB
-- 总包大小：最大 10MB
-- 文件数量：最多 100 个
-- 允许的文件类型：`.md`, `.txt`, `.json`, `.yaml`, `.yml`, `.js`, `.ts`, `.py`, `.sh`, `.png`, `.jpg`, `.svg`
+- 单文件大小：最大 10 MB
+- 总包大小：最大 100 MB
+- 文件数量：最多 500 个
+- 必须包含根目录 `SKILL.md`
+- 允许的扩展名：`.md`, `.txt`, `.json`, `.yaml`, `.yml`, `.html`, `.css`, `.csv`, `.pdf`, `.toml`, `.xml`, `.xsd`, `.xsl`, `.dtd`, `.ini`, `.cfg`, `.env`, `.js`, `.cjs`, `.mjs`, `.ts`, `.py`, `.sh`, `.rb`, `.go`, `.rs`, `.java`, `.kt`, `.lua`, `.sql`, `.r`, `.bat`, `.ps1`, `.zsh`, `.bash`, `.png`, `.jpg`, `.jpeg`, `.svg`, `.gif`, `.webp`, `.ico`, `.doc`, `.xls`, `.ppt`, `.docx`, `.xlsx`, `.pptx`
+- 默认启用扩展名白名单；白名单外的文件会产生发布警告并需要确认
+- 管理员设置 `SKILLHUB_PUBLISH_EXTENSION_ALLOWLIST_ENABLED=false` 并重启后，可上传任意扩展名和无扩展名文件
+- 路径必须是相对路径，不能包含 `../`、绝对路径或重复条目；图片和 PDF 会校验文件签名，文本文件必须是有效 UTF-8
 
 ## 下一步
 

@@ -106,6 +106,9 @@ skillhub:
     sentinel:
       check-sentinels-list: ${SKILLHUB_REDIS_SENTINEL_CHECK_SENTINELS_LIST:true}
   auth:
+    local:
+      registration:
+        allowed-email-suffixes: ${SKILLHUB_AUTH_LOCAL_ALLOWED_EMAIL_SUFFIXES:x-sense.com}
     mock:
       enabled: ${SKILLHUB_AUTH_MOCK_ENABLED:false}
     direct:
@@ -159,6 +162,7 @@ skillhub:
     max-file-count: 100
     max-single-file-size: 10485760 # 10MB
     max-package-size: 104857600 # 100MB
+    extension-allowlist-enabled: ${SKILLHUB_PUBLISH_EXTENSION_ALLOWLIST_ENABLED:true}
     # allowed-file-extensions: uses SkillPackagePolicy.ALLOWED_EXTENSIONS by default
     # Override via SKILLHUB_PUBLISH_ALLOWED_FILE_EXTENSIONS env var if needed
   profile:

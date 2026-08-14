@@ -32,6 +32,22 @@ class SkillPublishPropertiesTest {
                 });
     }
 
+    @Test
+    void bindsExtensionAllowlistSwitchFromEnvironmentStyleProperty() {
+        contextRunner
+                .withInitializer((context) -> context.getEnvironment().getPropertySources().addFirst(
+                        new SystemEnvironmentPropertySource(
+                                "test-env",
+                                Map.of("SKILLHUB_PUBLISH_EXTENSION_ALLOWLIST_ENABLED", "false")
+                        )
+                ))
+                .run((context) -> {
+                    SkillPublishProperties properties = context.getBean(SkillPublishProperties.class);
+
+                    assertThat(properties.isExtensionAllowlistEnabled()).isFalse();
+                });
+    }
+
     @Configuration
     @EnableConfigurationProperties(SkillPublishProperties.class)
     static class TestConfig {

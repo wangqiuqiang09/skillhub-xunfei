@@ -42,10 +42,12 @@ services:
       BOOTSTRAP_ADMIN_EMAIL: admin@skillhub.local
       OAUTH2_GITHUB_CLIENT_ID: local-placeholder
       OAUTH2_GITHUB_CLIENT_SECRET: local-placeholder
+      SKILLHUB_AUTH_LOCAL_ALLOWED_EMAIL_SUFFIXES: x-sense.com
       SKILLHUB_DOWNLOAD_ANON_COOKIE_SECRET: staging-download-secret-32-bytes
       SKILLHUB_SECURITY_SCANNER_ENABLED: "true"
       SKILLHUB_SECURITY_SCANNER_URL: http://skill-scanner:8000
       SKILLHUB_SECURITY_SCANNER_MODE: upload
+      SKILLHUB_PUBLISH_EXTENSION_ALLOWLIST_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,6 +70,7 @@ services:
       SKILLHUB_API_UPSTREAM: http://server:8080
       SKILLHUB_WEB_API_BASE_URL: ""
       SKILLHUB_PUBLIC_BASE_URL: "http://localhost"
+      SKILLHUB_TRUST_FORWARDED_PROTO: "false"
     depends_on:
       server:
         condition: service_healthy

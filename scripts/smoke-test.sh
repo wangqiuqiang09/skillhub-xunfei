@@ -6,7 +6,7 @@ PASS=0
 FAIL=0
 COOKIE_JAR="$(mktemp)"
 USERNAME="smoketest_$(date +%s)"
-EMAIL="${USERNAME}@example.com"
+EMAIL="${USERNAME}@x-sense.com"
 PASSWORD="Smoke@2026"
 NEW_PASSWORD="Smoke@2027"
 

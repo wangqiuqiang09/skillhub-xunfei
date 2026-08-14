@@ -53,14 +53,19 @@ class LocalAuthServiceTest {
 
     private LocalAuthService service;
 
+    private LocalRegistrationProperties registrationProperties;
+
     @BeforeEach
     void setUp() {
+        registrationProperties = new LocalRegistrationProperties();
+        registrationProperties.setAllowedEmailSuffixes(List.of("example.com"));
         service = new LocalAuthService(
             credentialRepository,
             userAccountRepository,
             userRoleBindingRepository,
             globalNamespaceMembershipService,
             new PasswordPolicyValidator(),
+            registrationProperties,
             passwordEncoder,
             CLOCK
         );
@@ -260,5 +265,31 @@ class LocalAuthServiceTest {
         assertThatThrownBy(() -> service.register("Alice", "Abcd123!", "   "))
             .isInstanceOf(AuthFlowException.class)
             .hasMessageContaining("validation.auth.local.email.notBlank");
+    }
+
+    @Test
+    void register_rejectsEmailOutsideConfiguredSuffixes() {
+        registrationProperties.setAllowedEmailSuffixes(List.of("x-sense.com", "example.org"));
+        given(credentialRepository.existsByUsernameIgnoreCase("alice")).willReturn(false);
+
+        assertThatThrownBy(() -> service.register("Alice", "Abcd123!", "alice@example.com"))
+            .isInstanceOf(AuthFlowException.class)
+            .hasMessageContaining("error.auth.local.email.suffixNotAllowed")
+            .satisfies(error -> assertThat(((AuthFlowException) error).getMessageArgs())
+                .containsExactly("@x-sense.com, @example.org"));
+    }
+
+    @Test
+    void register_allowsAnyEmailSuffixWhenConfigurationIsEmpty() {
+        registrationProperties.setAllowedEmailSuffixes(List.of());
+        given(credentialRepository.existsByUsernameIgnoreCase("alice")).willReturn(false);
+        given(userAccountRepository.findByEmailIgnoreCase("alice@example.net")).willReturn(Optional.empty());
+        given(passwordEncoder.encode("Abcd123!")).willReturn("encoded");
+        given(userAccountRepository.save(any(UserAccount.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(userRoleBindingRepository.findByUserId(any())).willReturn(List.of());
+
+        var principal = service.register("Alice", "Abcd123!", "alice@example.net");
+
+        assertThat(principal.email()).isEqualTo("alice@example.net");
     }
 }
